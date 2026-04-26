@@ -66,7 +66,7 @@ Responde con tu estrategia completa para hoy.`
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const stream = await anthropic.messages.stream({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 900,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
