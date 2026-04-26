@@ -65,14 +65,33 @@ Responde con tu estrategia completa para hoy.`
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-    const stream = await anthropic.messages.stream({
-      model: "claude-sonnet-4-6",
-      max_tokens: 900,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }],
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const response = anthropic.messages.stream({
+            model: "claude-sonnet-4-6",
+            max_tokens: 900,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userMessage }],
+          })
+          for await (const chunk of response) {
+            if (
+              chunk.type === "content_block_delta" &&
+              chunk.delta.type === "text_delta"
+            ) {
+              controller.enqueue(encoder.encode(chunk.delta.text))
+            }
+          }
+        } catch (err) {
+          controller.error(err)
+        } finally {
+          controller.close()
+        }
+      },
     })
 
-    return new Response(stream.toReadableStream(), {
+    return new Response(stream, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     })
   } catch (error) {
