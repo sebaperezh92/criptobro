@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/briefing/route.ts": { "maxDuration": 60 },
+    "app/api/agent1/route.ts": { "maxDuration": 60 },
+    "app/api/agent2/route.ts": { "maxDuration": 60 }
+  }
+}
