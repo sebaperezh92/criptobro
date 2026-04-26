@@ -83,7 +83,7 @@ Español. Tono educativo y analítico.`
       async start(controller) {
         try {
           const response = anthropic.messages.stream({
-            model: "claude-haiku-4-5-20251001",
+            model: "claude-sonnet-4-6",
             max_tokens: 900,
             system: systemPrompt,
             messages: [{ role: "user", content: userMessage }],
