@@ -42,6 +42,16 @@ export interface SimConfig {
   durationLabel: string
 }
 
+export interface PairData {
+  symbol: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+  change: number
+}
+
 export interface SimState {
   day: number
   portfolio: number
@@ -52,6 +62,7 @@ export interface SimState {
   messages: ChatMessage[]
   currentBriefing: string
   currentSentiment: Sentiment
+  currentMarketData: PairData[]
   isRunning: boolean
   isStarted: boolean
   isFinished: boolean

@@ -7,7 +7,7 @@ export const maxDuration = 60
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { mode, day, portfolio, simDateISO, simDateLabel, eraLabel, eraType, briefing, history, traderStrategy } = body
+    const { mode, day, portfolio, simDateISO, simDateLabel, eraLabel, eraType, briefing, history, traderStrategy, marketData } = body
 
     const eraTypeLabel =
       eraType === "bull" ? "alcista" : eraType === "bear" ? "bajista" : "lateral"
@@ -38,31 +38,34 @@ Máximo 3 oraciones. Español.`
       userMessage = `Es el día ${day}. ¿Qué pregunta le harías al Trader para este día?`
     } else {
       // mode === "evaluate"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const marketSection = marketData && marketData.length > 0
+        ? `\nDATOS REALES DE BINANCE PARA ${simDateISO}:\n` +
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (marketData as any[]).map((d: any) =>
+            `${d.symbol}: Apertura $${d.open.toLocaleString()} | Cierre $${d.close.toLocaleString()} | Máx $${d.high.toLocaleString()} | Mín $${d.low.toLocaleString()} | Cambio ${d.change >= 0 ? "+" : ""}${d.change}%`
+          ).join("\n")
+        : "\n(Datos de Binance no disponibles para esta fecha — usa el briefing para tu evaluación.)"
+
       systemPrompt = `Eres el AGENTE 2 — Oráculo del Mercado con datos históricos REALES de Binance.
 Fecha: ${simDateLabel} (${simDateISO}). Capital: $${portfolio.toFixed(2)} USD.
 Era: ${eraLabel} (${eraTypeLabel}).
 
 BRIEFING DEL DÍA: ${briefing}
 ESTRATEGIA DEL TRADER: ${traderStrategy}
+${marketSection}
 
-EVALUACIÓN CON DATOS HISTÓRICOS REALES:
-1. ¿Qué pasó realmente en ${simDateISO} con el par que eligió el trader?
-2. ¿Cómo movió el mercado ese día dado el contexto de noticias?
-3. ¿La lectura del trader de las noticias fue correcta?
-4. ¿Qué señal del briefing fue la más predictiva del resultado?
+INSTRUCCIÓN CRÍTICA: Si tienes datos reales de Binance arriba, ÚSALOS para basar tu evaluación en los movimientos reales del par que eligió el trader. El P&L debe reflejar lo que REALMENTE ocurrió ese día según los datos de precio.
 
-CÁLCULO DE P&L (proporcional al capital usado, no al total):
-Si el trader usó X% del capital, el P&L se calcula sobre ese X%.
-
-RANGOS DE VOLATILIDAD REALISTAS:
-Bull market + noticias positivas: long puede dar +8% a +25% del capital usado
-Bull market + noticias mixtas: long da +2% a +10%, short da -5% a -15%
-Bear market + noticias negativas: short puede dar +5% a +20%, long da -8% a -30%
-Bear market + rebote técnico: puede haber sorpresas alcistas del +5% a +15%
-Lateral + sin noticias clave: ±2% a ±8% del capital usado
-Eventos extremos (halving, ETF aprobado, crash): hasta ±35%
+CÁLCULO DE P&L BASADO EN DATOS REALES:
+- Identifica el par que usó el trader
+- Si ese par está en los datos de Binance, usa el cambio % real del día
+- Aplica ese cambio al capital que el trader declaró usar (si dijo "50% del capital", aplica sobre $${(portfolio * 0.5).toFixed(2)})
+- Si eligió LONG y el precio subió → ganó. Si bajó → perdió. Para SHORT, al revés.
+- Si no hay datos del par específico, usa el cambio de BTC como referencia del mercado.
 
 Da feedback constructivo en 4-5 oraciones:
+- Cita los precios reales del día (si tienes datos) para dar credibilidad
 - Qué leyó bien el trader en las noticias
 - Qué no consideró
 - Qué habría sido la operación óptima para ese día
@@ -72,7 +75,7 @@ RESULTADO_USD: [número con 2 decimales, positivo si ganó, negativo si perdió]
 
 Español. Tono educativo y analítico.`
 
-      userMessage = `Evalúa la estrategia del trader para el ${simDateLabel} y calcula el resultado.`
+      userMessage = `Evalúa la estrategia del trader para el ${simDateLabel} usando los datos reales de Binance y calcula el resultado.`
     }
 
     const encoder = new TextEncoder()

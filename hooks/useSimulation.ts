@@ -5,6 +5,7 @@ import {
   ChatMessage,
   MessageRole,
   MessageType,
+  PairData,
   Sentiment,
   SimConfig,
   SimState,
@@ -38,6 +39,7 @@ const initialState: SimState = {
   messages: [],
   currentBriefing: "",
   currentSentiment: "neutral",
+  currentMarketData: [],
   isRunning: false,
   isStarted: false,
   isFinished: false,
@@ -48,6 +50,7 @@ type Action =
   | { type: "SET_RUNNING"; payload: boolean }
   | { type: "SET_STEP"; payload: 0 | 1 | 2 | 3 | 4 }
   | { type: "SET_BRIEFING"; payload: { briefing: string; sentiment: Sentiment } }
+  | { type: "SET_MARKET_DATA"; payload: PairData[] }
   | { type: "ADD_MESSAGE"; payload: ChatMessage }
   | { type: "UPDATE_MESSAGE"; payload: { id: string; text: string; isTyping?: boolean } }
   | { type: "FINALIZE_MESSAGE"; payload: { id: string; type?: MessageType } }
@@ -68,6 +71,8 @@ function reducer(state: SimState, action: Action): SimState {
         currentBriefing: action.payload.briefing,
         currentSentiment: action.payload.sentiment,
       }
+    case "SET_MARKET_DATA":
+      return { ...state, currentMarketData: action.payload }
     case "ADD_MESSAGE":
       return { ...state, messages: [...state.messages, action.payload] }
     case "UPDATE_MESSAGE":
@@ -248,6 +253,21 @@ export function useSimulation() {
 
       dispatch({ type: "SET_BRIEFING", payload: { briefing, sentiment } })
 
+      // ── STEP 1.5: Market data from Binance ───────────────────────────────
+      let marketData: PairData[] = []
+      try {
+        const marketRes = await fetch("/api/market", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ simDateISO }),
+        })
+        const marketJson = await marketRes.json()
+        marketData = marketJson.marketData ?? []
+        dispatch({ type: "SET_MARKET_DATA", payload: marketData })
+      } catch {
+        // Binance data is best-effort; simulation continues without it
+      }
+
       // ── STEP 2: Oracle asks ───────────────────────────────────────────────
       dispatch({ type: "SET_STEP", payload: 2 })
 
@@ -318,6 +338,7 @@ export function useSimulation() {
           eraType: era.type,
           briefing,
           traderStrategy,
+          marketData,
         },
         (text) => {
           evalFull = text

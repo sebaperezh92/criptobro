@@ -9,6 +9,7 @@ import TimelineBadge from "@/components/TimelineBadge"
 import MetricsBar from "@/components/MetricsBar"
 import StepIndicator from "@/components/StepIndicator"
 import NewsBriefing from "@/components/NewsBriefing"
+import MarketDataPanel from "@/components/MarketDataPanel"
 import ChatFeed from "@/components/ChatFeed"
 import TradeHistory from "@/components/TradeHistory"
 import PortfolioChart from "@/components/PortfolioChart"
@@ -246,10 +247,24 @@ export default function Home() {
           />
         )}
 
+        {/* Market data */}
+        {state.isStarted && state.currentMarketData.length > 0 && (
+          <MarketDataPanel
+            data={state.currentMarketData}
+            simDateLabel={headerDateLabel}
+          />
+        )}
+
         {/* Chat + Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           <div className="lg:col-span-3">
-            <ChatFeed messages={state.messages} />
+            <ChatFeed
+              messages={state.messages}
+              autoRun={autoRun}
+              isRunning={state.isRunning}
+              onPause={state.isStarted && !state.isFinished ? handlePause : undefined}
+              onResume={state.isStarted && !state.isFinished ? handleResume : undefined}
+            />
           </div>
           <div className="lg:col-span-2 space-y-4">
             <PortfolioChart
