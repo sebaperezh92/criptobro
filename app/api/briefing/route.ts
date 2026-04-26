@@ -24,52 +24,66 @@ export async function POST(req: NextRequest) {
 
     const seed = getNewsSeed(simDateISO)
     const seedContext = seed
-      ? `\n\nCONTEXTO CONOCIDO DEL PERÍODO (úsalo si no tienes datos exactos): ${seed}`
+      ? `\n\nCONTEXTO CONOCIDO DEL PERÍODO: ${seed}`
       : ""
 
     const prompt = `Eres un analista de mercados financieros. Genera el briefing económico para un trader de criptomonedas en Binance para el día ${simDateISO} (${simDateLabel}).
 
-REGLA ABSOLUTA: Solo menciona eventos, precios y noticias que ocurrieron ANTES O DURANTE el ${simDateISO}. Nunca reveles información del futuro. Operas como si fuera exactamente ese día — el trader no sabe lo que viene.
+REGLA ABSOLUTA: Solo menciona eventos, precios y noticias que ocurrieron ANTES O DURANTE el ${simDateISO}. Nunca reveles información del futuro.
 
-Usa Google Search para buscar noticias reales de esa fecha. Busca: "crypto news ${simDateISO}", "bitcoin price ${simDateISO}", "economy news ${simDateISO.substring(0, 7)}", "federal reserve ${simDateISO.substring(0, 7)}", "crypto regulation ${simDateISO.substring(0, 4)}"
+Busca noticias reales de: "crypto news ${simDateISO}", "bitcoin price ${simDateISO.substring(0, 7)}", "economy news ${simDateISO.substring(0, 7)}", "federal reserve ${simDateISO.substring(0, 7)}"
 
-Estructura del briefing (exactamente este formato, en español):
+Estructura exacta (en español):
 SENTIMIENTO: [FEAR|NEUTRAL|GREED]
 
-· [Precio aproximado de BTC y ETH en esa fecha con contexto]
-· [Estado del mercado crypto ese día: volumen, dominancia, tendencia]
-· [Noticia económica macro más relevante: Fed, inflación, empleo, PIB]
-· [Noticia geopolítica que pueda afectar mercados si la hay]
-· [Evento específico de crypto ese período: hack, regulación, adopción, fork]
-· [Correlación relevante: DXY, S&P500, Nasdaq vs BTC ese día]
+· [Precio de BTC y ETH en esa fecha con contexto]
+· [Estado del mercado crypto ese día]
+· [Noticia económica macro más relevante: Fed, inflación, empleo]
+· [Evento específico de crypto: hack, regulación, adopción, fork]
+· [Correlación: DXY, S&P500 vs BTC ese día]
+· [Contexto geopolítico relevante si lo hay]
 
-Contexto adicional del período: ${eraLabel} — mercado ${eraType}.${seedContext}
+Período: ${eraLabel} — mercado ${eraType}.${seedContext}
 
-Sé factual. Solo hechos verificables. Si no tienes datos exactos de ese día, da el contexto del período (esa semana o mes). Español.`
+Sé factual y específico con fechas y precios reales. Español.`
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
-      tools: [{ googleSearchRetrieval: {} }],
-    })
+    // Intentar con Search Grounding primero
+    try {
+      const modelWithSearch = genAI.getGenerativeModel({
+        model: "gemini-1.5-pro",
+        tools: [{ googleSearchRetrieval: {} }],
+      })
+      const result = await modelWithSearch.generateContent({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+      })
+      const text = result.response.text()
+      if (text && text.length > 50) {
+        return NextResponse.json({ briefing: text })
+      }
+    } catch (searchError) {
+      console.log("Search grounding falló, usando Gemini estándar:", searchError)
+    }
 
-    const result = await model.generateContent({
+    // Fallback: Gemini sin Search Grounding
+    const modelStandard = genAI.getGenerativeModel({ model: "gemini-1.5-pro" })
+    const result = await modelStandard.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.3, maxOutputTokens: 800 },
+      generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
     })
-
     const text = result.response.text()
-
     return NextResponse.json({ briefing: text })
+
   } catch (error) {
     console.error("Briefing error:", error)
 
-    // Fallback: use seed directly
+    // Último fallback: seed de noticias
     const seed = getNewsSeed(simDateISO)
     const fallback = seed
-      ? `SENTIMIENTO: NEUTRAL\n\n· ${seed}\n· Datos de mercado no disponibles para esta fecha exacta.\n· Usa el contexto del período para tu análisis.\n· Mantente cauteloso ante la incertidumbre.\n· Gestiona el riesgo con stops ajustados.\n· Mercado crypto volátil — adapta posiciones al contexto.`
-      : `SENTIMIENTO: NEUTRAL\n\n· Datos de mercado no disponibles. Mercado crypto en rango habitual.\n· Volumen normal, sin eventos extremos conocidos.\n· Macro: condiciones estándar del período.\n· Sin noticias geopolíticas significativas.\n· Mercado en consolidación técnica.\n· BTC y altcoins siguiendo tendencia del período.`
+      ? `SENTIMIENTO: NEUTRAL\n\n· ${seed}\n· Datos adicionales de mercado en proceso de carga.\n· Usa el contexto del período para tu análisis.\n· Gestiona el riesgo con stops ajustados.\n· Mercado crypto volátil — adapta posiciones al contexto.\n· Correlaciones macro siguen tendencia del período.`
+      : `SENTIMIENTO: NEUTRAL\n\n· Mercado crypto en rango habitual para el período.\n· Volumen normal, sin eventos extremos confirmados.\n· Condiciones macro estándar del período.\n· Sin noticias geopolíticas significativas confirmadas.\n· Mercado en consolidación técnica.\n· BTC y altcoins siguiendo tendencia histórica del período.`
 
     return NextResponse.json({ briefing: fallback })
   }

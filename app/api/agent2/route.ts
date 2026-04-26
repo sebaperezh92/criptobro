@@ -80,7 +80,7 @@ Español. Tono educativo y analítico.`
       async start(controller) {
         try {
           const response = anthropic.messages.stream({
-            model: "claude-sonnet-4-6",
+            model: "claude-haiku-4-5-20251001",
             max_tokens: 900,
             system: systemPrompt,
             messages: [{ role: "user", content: userMessage }],
@@ -94,6 +94,7 @@ Español. Tono educativo y analítico.`
             }
           }
         } catch (err) {
+          console.error("Agent2 stream error:", JSON.stringify(err))
           controller.error(err)
         } finally {
           controller.close()

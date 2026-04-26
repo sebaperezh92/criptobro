@@ -70,7 +70,7 @@ Responde con tu estrategia completa para hoy.`
       async start(controller) {
         try {
           const response = anthropic.messages.stream({
-            model: "claude-sonnet-4-6",
+            model: "claude-haiku-4-5-20251001",
             max_tokens: 900,
             system: systemPrompt,
             messages: [{ role: "user", content: userMessage }],
