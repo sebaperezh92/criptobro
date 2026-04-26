@@ -62,8 +62,20 @@ export const NEWS_SEEDS: Record<string, string> = {
   "2024-12": "BTC cerca $100k y lo supera brevemente, euforia máxima, altseason",
   "2025-01": "Trump firma executive order pro-crypto, reserva estratégica BTC anunciada, BTC $100k",
   "2025-02": "Corrección BTC a $85k, mercado consolida, tariffs Trump preocupan",
-  "2025-03": "BTC $80k-90k lateral, macro incertidumbre, debate reserva estratégica",
-  "2025-04": "BTC volatilidad tariffs globales, corrección a $75k-85k, mercado cauteloso",
+  "2025-03": "BTC $80k-90k lateral, macro incertidumbre, debate reserva estratégica BTC USA",
+  "2025-04": "BTC volatilidad por tariffs globales Trump, corrección a $75k-85k, mercado cauteloso, oro ATH",
+  "2025-05": "BTC rebota tras acuerdo comercial EEUU-China parcial, $85k-90k, altcoins recuperan",
+  "2025-06": "BTC consolida $85k-95k, ETF flujos positivos, Fed pausa tasas, verano crypto activo",
+  "2025-07": "BTC supera $95k, optimismo macro, inflación USA controlada, DXY débil",
+  "2025-08": "BTC $95k-105k, instituciones aumentan exposición, ETH sube por actividad DeFi",
+  "2025-09": "BTC cerca $100k-110k, Fed recorta tasas nuevamente, rally broad crypto",
+  "2025-10": "BTC ATH zona $110k-120k, altseason intensa, volumen récord en exchanges",
+  "2025-11": "BTC consolida $105k-115k, mercado lateral tras ATH, profit taking institucional",
+  "2025-12": "BTC fin de año $110k-120k, balance positivo 2025, adopción corporativa masiva",
+  "2026-01": "BTC inicia 2026 fuerte $115k-125k, nuevos ETF productos, reserva estratégica avanza",
+  "2026-02": "BTC $120k-130k, bull run 2026 confirmado, altcoins en máximos históricos",
+  "2026-03": "BTC consolida $125k-135k, macro global estable, crypto mainstream financiero",
+  "2026-04": "BTC $130k-140k zona, mercado alcista sostenido, instituciones acumulan fuerte",
 }
 
 export function getNewsSeed(dateISO: string): string {

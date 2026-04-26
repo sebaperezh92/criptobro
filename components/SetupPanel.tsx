@@ -32,7 +32,8 @@ export default function SetupPanel({ config, setConfig, disabled }: Props) {
   const era = getEra(startISO)
   const eraColor = ERA_COLORS[era.type]
 
-  const progressPct = 0 // setup, no progress yet
+  const progressPct = 0
+  const todayISO = toISO(addDays(new Date(), -1))
 
   function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
     const d = new Date(e.target.value + "T12:00:00")
@@ -57,7 +58,7 @@ export default function SetupPanel({ config, setConfig, disabled }: Props) {
         <input
           type="date"
           min="2020-01-01"
-          max="2025-04-24"
+          max={todayISO}
           value={startISO}
           onChange={handleDateChange}
           disabled={disabled}

@@ -13,7 +13,10 @@ export const MARKET_ERAS: Era[] = [
   { from: "2024-01-01", to: "2024-03-14", label: "Pre-halving 2024",     type: "bull" },
   { from: "2024-03-15", to: "2024-08-31", label: "Post-halving lateral", type: "flat" },
   { from: "2024-09-01", to: "2024-12-31", label: "Bull run electoral",   type: "bull" },
-  { from: "2025-01-01", to: "2025-04-25", label: "Consolidación 2025",   type: "flat" },
+  { from: "2025-01-01", to: "2025-03-31", label: "Consolidación 2025",   type: "flat" },
+  { from: "2025-04-01", to: "2025-06-30", label: "Corrección Q2 2025",   type: "bear" },
+  { from: "2025-07-01", to: "2025-12-31", label: "Recuperación 2025",    type: "bull" },
+  { from: "2026-01-01", to: "2026-06-30", label: "Bull run 2026",        type: "bull" },
 ]
 
 export function getEra(dateISO: string): Era {
